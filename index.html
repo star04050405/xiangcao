@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>香草圣经 · 翻页手账</title>
+<meta name="theme-color" content="#21358E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="香草圣经">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--cobalt:#21358E;--cobalt-deep:#16246A;--paper:#FBFAF6;--ink:#1D2440;--soft:#8B90A8;--line:#E3E2DB;--red:#C8102E;--gold:#B08D2F}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#EFEDE6;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI","Microsoft YaHei",sans-serif;line-height:1.75;display:flex;justify-content:center;padding:18px 14px calc(40px + env(safe-area-inset-bottom));min-height:100vh}
+.mono{font-family:"SF Mono",Menlo,Consolas,"Courier New",monospace}
+.book{width:100%;max-width:430px;display:flex;flex-direction:column}
+.pager{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--soft);letter-spacing:.15em;margin-bottom:10px}
+.pager .mono{font-size:12px}
+.page{background:var(--paper);border-radius:4px;box-shadow:0 2px 6px rgba(20,26,60,.14),0 14px 34px rgba(20,26,60,.16);overflow:hidden;position:relative;flex:1}
+/* ── 封面复刻 ── */
+.cover{aspect-ratio:145/210;background:var(--cobalt);color:#fff;display:flex;flex-direction:column;align-items:center;padding:9% 8%;position:relative;cursor:pointer}
+.cover .dk{position:absolute;top:14px;left:14px;background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:2px 5px;letter-spacing:.05em;border-radius:2px}
+.cover .topline{font-size:9px;letter-spacing:.35em;opacity:.85;margin-top:14px;text-align:center}
+.cover .seal{width:38%;aspect-ratio:1;border:1.5px solid rgba(255,255,255,.9);border-radius:50%;margin:auto 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.cover .seal .tree{font-size:26px;line-height:1}
+.cover .seal .en{font-size:7px;letter-spacing:.22em;opacity:.9}
+.cover .seal .dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.9)}
+.cover .btitle{font-size:26px;font-weight:800;letter-spacing:.14em;text-align:center}
+.cover .btitle small{display:block;font-size:10px;font-weight:400;letter-spacing:.3em;opacity:.85;margin-top:6px}
+.cover .thumbs{display:flex;gap:6px;width:100%;margin-top:auto}
+.cover .thumbs span{flex:1;aspect-ratio:1;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:17px}
+.cover .hint{position:absolute;bottom:-26px;left:0;right:0;text-align:center;font-size:10px;color:var(--soft);letter-spacing:.2em}
+/* ── 内页通用 ── */
+.inner{padding:26px 24px 30px;display:flex;flex-direction:column;min-height:100%}
+.ph{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--cobalt);padding-bottom:8px;margin-bottom:14px}
+.ph h2{font-size:17px;font-weight:800;letter-spacing:.06em}
+.ph .pg{font-size:11px;color:var(--soft)}
+.note-list{list-style:none}
+.note-list li{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.note-list .k{color:var(--cobalt);font-size:11px;letter-spacing:.1em;width:74px;flex-shrink:0;padding-top:2px}
+.note-list .v{flex:1}
+.v b{font-weight:700}
+.v .mono{color:var(--soft);font-size:11px}
+blockquote{border-left:2px solid var(--cobalt);padding:4px 0 4px 12px;margin:12px 0;font-size:12.5px;color:var(--soft);font-style:italic}
+.fine{font-size:10px;color:var(--soft);margin-top:auto;padding-top:14px;border-top:1px solid var(--line);letter-spacing:.04em}
+/* ── 香草卡 ── */
+.herb-name{font-size:22px;font-weight:800;letter-spacing:.05em}
+.herb-latin{font-size:12px;color:var(--soft);font-style:italic;margin:2px 0 14px}
+.herb-desc{font-size:14px;margin-bottom:14px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.tags span{font-size:10.5px;letter-spacing:.08em;border:1px solid var(--cobalt);color:var(--cobalt);border-radius:99px;padding:2px 10px}
+.tip{background:#F4F3EC;border-radius:6px;padding:10px 12px;font-size:12.5px;margin-bottom:12px}
+.tip b{color:var(--cobalt)}
+.herb-foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
+.read-mark{font-size:10px;letter-spacing:.2em;color:var(--soft)}
+.read-mark.on{color:var(--cobalt);font-weight:700}
+/* ── 底部导航 ── */
+.nav{display:flex;gap:10px;margin-top:16px}
+.nav button{flex:1;border:1.5px solid var(--ink);background:var(--ink);color:#fff;font-size:13px;font-weight:700;padding:12px 0;border-radius:99px;letter-spacing:.12em;cursor:pointer}
+.nav button.ghost{background:transparent;color:var(--ink)}
+.nav button:disabled{opacity:.28;cursor:default}
+.pageno{text-align:center;font-size:11px;color:var(--soft);margin-top:10px;letter-spacing:.3em;font-variant-numeric:tabular-nums}
+/* ── 目录 ── */
+.toc-list{list-style:none;flex:1}
+.toc-list li{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);font-size:13.5px;cursor:pointer}
+.toc-list .no{font-size:11px;color:var(--soft);width:26px;font-variant-numeric:tabular-nums}
+.toc-list .nm{flex:1;font-weight:600}
+.toc-list .en{font-size:11px;color:var(--soft);font-style:italic}
+.toc-list .rd{width:7px;height:7px;border-radius:50%;background:#DDDCE3;flex-shrink:0}
+.toc-list li.read .rd{background:var(--cobalt)}
+.toc-list li.read .nm{color:var(--soft)}
+.toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(16px);background:var(--cobalt);color:#fff;font-size:12.5px;padding:8px 18px;border-radius:99px;opacity:0;pointer-events:none;transition:all .3s;z-index:60;letter-spacing:.05em}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── 目录页章节树 ── */
+.toc-list li.sec{border-bottom:1.5px solid #C9C6B8;padding:11px 2px 8px}
+.toc-list li.sub{padding:6px 2px;border-bottom:none;font-size:12.5px;cursor:default}
+.toc-list li.sub .en{min-width:28px;text-align:right}
+/* ── 打卡册 ── */
+.herb-roll{flex:1;max-height:520px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.roll-item{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid var(--line);cursor:pointer;font-size:13px}
+.roll-item .no{font-size:10px;color:var(--soft);width:30px;flex-shrink:0}
+.roll-item .nm{flex:1;font-weight:600}
+.roll-item.on .nm{color:var(--cobalt)}
+.roll-item .pgn{font-size:10px;color:var(--soft)}
+.roll-item .dot{width:10px;height:10px;border-radius:50%;background:#DDDCE3;flex-shrink:0;transition:all .2s}
+.roll-item.on .dot{background:var(--cobalt);box-shadow:0 0 0 3px rgba(33,53,142,.14)}
+
+</style>
+</head>
+<body>
+<div class="book">
+  <div class="pager"><span>THE HERB BIBLE</span><span class="mono" id="dateStr"></span></div>
+  <div class="page" id="page"></div>
+  <div class="nav">
+    <button class="ghost" id="prevBtn">‹ 上一页</button>
+    <button id="nextBtn">下一页 ›</button>
+  </div>
+  <div class="pageno mono" id="pageno"></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+"use strict";
+var META={title:"DK香草圣经",en:"Neal's Yard Remedies · The Herb Bible",authors:"[英] 苏珊·柯蒂斯 / 路易斯·格林 / 佩内洛普·欧迪 / 德勒冈娜·韦林尼克",trans:"张琳 · 译",press:"湖北科学技术出版社",year:"2018-09",pages:343,price:"138.00",isbn:"9787535294975",score:"7.9",quote:"类似哈利波特学的药草学教材 —— 豆瓣短评"};
+/* 真实目录 · 100 种香草（原书 p.12-136，名字与页码来自 TA 拍摄的书目录页） */
+var HERBS=[["西洋蓍草",12],["黑升麻",14],["藿香",15],["欧洲龙芽草",16],["斗篷草",18],["大蒜",19],["芦荟",20],["柠檬马鞭草",22],["药蜀葵",23],["欧白芷",24],["旱芹",26],["美洲甘松",27],["牛蒡",28],["熊果",30],["苦艾",31],["黄芪",32],["燕麦",33],["琉璃苣",34],["金盏花",36],["辣椒",38],["葛缕子",39],["积雪草",40],["菊苣",42],["山楂",44],["姜黄",45],["柠檬香茅",46],["洋蓟",48],["野山药",49],["紫锥菊",50],["问荆",52],["蓝桉",53],["大麻叶泽兰",54],["紫苞佩兰",55],["旋果蚊子草",56],["茴香",57],["野草莓",58],["猪殃殃",60],["银杏",61],["洋甘草",62],["北美金缕梅",63],["鱼腥草",64],["啤酒花",66],["金印草",67],["贯叶连翘",68],["神香草",70],["土木香",71],["茉莉",72],["欧洲刺柏",73],["薰衣草",74],["益母草",76],["欧当归",77],["宿根亚麻",78],["枸杞",79],["德国洋甘菊",80],["草木犀",82],["柠檬香蜂草",83],["辣薄荷",84],["猫薄荷",85],["月见草",86],["竹节参",88],["西番莲",89],["长叶车前草",90],["车前草",91],["桔梗",92],["夏枯草",93],["黑醋栗",94],["野玫瑰",95],["大马士革玫瑰",96],["迷迭香",98],["覆盆子",99],["皱叶酸模",100],["白柳",101],["撒尔维亚鼠尾草",102],["西洋接骨木",104],["云木香",106],["五味子",107],["美洲黄芩",108],["番泻树",109],["奶蓟",110],["繁缕",111],["聚合草",112],["小白菊",113],["药用蒲公英",114],["百里香",116],["小叶椴",118],["红车轴草",119],["旱金莲",120],["款冬",122],["赤榆",123],["异株荨麻",124],["黑果越桔",125],["缬草",126],["毛蕊花",127],["马鞭草",128],["欧洲荚蒾",129],["三色堇",130],["槲寄生",132],["穗花牡荆",134],["南非醉茄",135],["玉米须",136]];
+/* 目录 · 章节（真实结构） */
+var TOC=[
+{name:"引言",items:[]},
+{name:"100 种香草",pg:"12–136",items:[["西洋蓍草 · 黑升麻 · 藿香 …… 欧白芷","",0],["（按 A–Z 排列的 100 条香草档案，每条含种植与使用）","",0]]},
+{name:"香草的使用",pg:"140",items:[["健康肌肤&秀发",140],["消化问题",142],["体内循环",144],["女性健康",146],["男性健康",148],["咳嗽&感冒",150],["急救护理",152],["肌肉&关节",154],["精神&情绪",156],["怀孕&分娩",158]]},
+{name:"由内治愈 · 饮料、酊剂、汤和沙拉",pg:"160",items:[["果汁&果昔",163],["花草茶",175],["果汁浓缩液&糖浆",187],["酊剂",199],["羹汤",213],["沙拉",227],["能量条",239]]},
+{name:"从外治愈 · 乳膏、手工皂、浸浴液和头发护理",pg:"244",items:[["面霜&身体乳膏",247],["身体磨砂膏",259],["身体护理油",265],["身体喷雾",271],["爽身粉",277],["手工皂",283],["洁面乳",289],["爽肤水",293],["面膜",297],["香膏",303],["气泡弹",307],["浸浴液",311],["护发用品",319]]},
+{name:"获取香草",pg:"330",items:[["规划你的香草花园",330],["种植香草",332],["繁殖方法",334],["浇水和施肥",335],["杂草和病虫害",336],["野外采摘",338],["购买和储藏香草",340],["香草的基础使用法",342]]}
+];
+/* 精选导读：只收录书中真实存在的 8 种 */
+var FEATURE=[
+{key:"f-lavender",zh:"薰衣草",en:"Lavender",pg:74,d:"普罗旺斯的紫色黄昏。香气息常被放进枕头，跟着梦走。",t:["香囊","甜品","耐旱"],tip:"收割要带一段茎，扎束倒挂。花穗颜色最深时是最佳时刻。"},
+{zh:"茴香",en:"Fennel",latin:"Foeniculum vulgare",pg:57,d:"球茎脆甜，籽粒温暖。整株都能用，是香草里的全才。",t:["料理","茶饮","蜜源"],tip:"与莳萝是近亲，串味严重——别种在花园同一角。"},
+{zh:"柠檬香茅",en:"Lemongrass",latin:"Cymbopogon citratus",pg:46,d:"一丛安静细长的草，切开茎部才露出清冽的柠檬香。东南亚的底味。",t:["料理","茶饮","热带"],tip:"只用茎的底部白色部分，拍裂再煮，香气才肯出来。"},
+{zh:"柠檬香蜂草",en:"Lemon Balm",latin:"Melissa officinalis",pg:83,d:"碰一下满手柠檬香。蜜蜂最爱，所以叫 Melissa——希腊语的蜜蜂。",t:["茶饮","安神","易种"],tip:"书中花草茶的主角：与玫瑰花瓣同泡，趁热或冷萃都好——第 175 页那杯。"},
+{zh:"辣薄荷",en:"Peppermint",latin:"Mentha × piperita",pg:84,d:"清凉的代名词。从杯沿的一片叶子开始，整个下午都凉下来。",t:["茶饮","甜品","入侵性"],tip:"单盆隔离种植——它的地下茎会跑，混栽时会占领整个花盆。"},
+{zh:"迷迭香",en:"Rosemary",latin:"Salvia rosmarinus",pg:98,d:"像松林和海风混在一起的味道。回忆之草，据说闻到它，记性会变好。",t:["料理","烤制","耐旱"],tip:"宁干勿湿。它更喜欢被忘记浇水，而不是被惦记。"},
+{zh:"撒尔维亚鼠尾草",en:"Sage",latin:"Salvia officinalis",pg:102,d:"灰绿的绒叶，烟熏似的草本香。欧洲厨房里最古老的长者。",t:["料理","干花","多年生"],tip:"叶面覆着细绒，浇水浇土不浇叶。剪取嫩梢，老枝会木质化。"},
+{zh:"百里香",en:"Thyme",latin:"Thymus vulgaris",pg:116,d:"低矮成毯，香味沉实。一小枝就能撑起一锅炖菜的底色。",t:["料理","炖煮","蜜源植物"],tip:"喜欢贫瘠的土和充足的阳光，土太肥反而香得单薄。"}
+];
+var S=null;try{S=window.localStorage}catch(e){}
+function load(k){if(!S)return{};try{return JSON.parse(S.getItem(k)||"{}")}catch(e){return{}}}
+function save(k,r){if(S)try{S.setItem(k,JSON.stringify(r))}catch(e){}}
+var MARKED=load("xiangcao.herb"), READ=load("xiangcao.read");
+var $=function(id){return document.getElementById(id)};
+function esc(s){return s.replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]})}
+var N=8+7;
+var cur=0;
+/* 页序：0封面 1书档 2目录 3打卡册 4..11精选卡 12配方 13尾页 */
+function isMarked(i){return !!MARKED["h"+i]}
+function toggleMark(i){if(MARKED["h"+i]){delete MARKED["h"+i]}else{MARKED["h"+i]=1}save("xiangcao.herb",MARKED)}
+function isRead(i){return !!READ["c"+i]}
+function markRead(i){READ["c"+i]=1;save("xiangcao.read",READ)}
+function markedCount(){var n=0;for(var k in MARKED){if(MARKED[k])n++}return n}
+function render(){
+  var pg=$("page"),h="";
+  if(cur===0){
+    h='<div class="cover" id="coverGo"><span class="dk">DK</span>'+
+      '<div class="topline">香草种下 · 收成 · 上桌 · 入茶</div>'+
+      '<div class="seal"><span class="tree">🌿</span><span class="en">THE HERB BIBLE</span><span class="dot"></span><span class="en">100 HERBS INSIDE</span></div>'+
+      '<div class="btitle">香草圣经<small>THE HERB BIBLE · 343 PAGES</small></div>'+
+      '<div class="thumbs"><span>🍵</span><span>🌿</span><span>🫖</span><span>🌾</span></div>'+
+      '<div class="hint">点封面 · 开始翻阅</div></div>';
+  }else if(cur===1){
+    h='<div class="inner"><div class="ph"><h2>书档</h2><span class="pg mono">01</span></div><ul class="note-list">'+
+      '<li><span class="k">书名</span><span class="v"><b>《'+META.title+'》</b><br><span class="mono">'+esc(META.en)+'</span></span></li>'+
+      '<li><span class="k">作者</span><span class="v">'+esc(META.authors)+'</span></li>'+
+      '<li><span class="k">翻译</span><span class="v">'+esc(META.trans)+'</span></li>'+
+      '<li><span class="k">出版</span><span class="v">'+META.press+' · '+META.year+' · '+META.pages+' 页 · 定价 ¥'+META.price+'</span></li>'+
+      '<li><span class="k">ISBN</span><span class="v mono">'+META.isbn+'</span></li>'+
+      '<li><span class="k">评分</span><span class="v"><b>'+META.score+'</b> / 10 · 豆瓣</span></li>'+
+      '<li><span class="k">结构</span><span class="v">引言 + <b>100 种香草</b>（p.12–136）+ 香草的使用 + 由内治愈 + 从外治愈 + 获取香草</span></li></ul>'+
+      '<blockquote>「'+esc(META.quote)+'」</blockquote>'+
+      '<div class="fine">香草页仅供生活参考 · 不构成医疗建议 · 持续不适请就医</div></div>';
+  }else if(cur===2){
+    h='<div class="inner"><div class="ph"><h2>目录</h2><span class="pg mono">02</span></div><ul class="toc-list">';
+    TOC.forEach(function(sec,si){
+      h+='<li class="sec"><span class="nm" style="font-weight:800">'+esc(sec.name)+'</span><span class="en mono">'+(sec.pg?esc(sec.pg):"")+'</span><span class="rd" style="background:var(--cobalt)"></span></li>';
+      sec.items.forEach(function(it){
+        h+='<li class="sub"><span class="nm" style="font-weight:400;color:var(--soft)">'+esc(it[0])+'</span><span class="en mono">'+(it[1]?esc(String(it[1])):"")+'</span><span class="rd" style="background:transparent"></span></li>';
+      });
+    });
+    h+='</ul><div class="fine">章节结构与页码 · 来自实体书目录页</div></div>';
+  }else if(cur===3){
+    var mc=markedCount();
+    h='<div class="inner"><div class="ph"><h2>100 种香草 · 打卡册</h2><span class="pg mono">03</span></div>'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="flex:1;height:8px;background:#E7E5DC;border-radius:99px;overflow:hidden"><div style="width:'+(mc)+"%;height:100%;background:var(--cobalt);border-radius:99px;transition:width .4s\"></div></div><span class=\"mono\" style=\"font-size:11px;color:var(--cobalt);font-weight:700\">"+mc+' / 100</span></div>'+
+      '<div class="herb-roll">';
+    HERBS.forEach(function(hb,i){
+      var on=isMarked(i);
+      h+='<div class="roll-item'+(on?" on":"")+'" data-i="'+i+'"><span class="no mono">'+String(i+1).padStart(3,"0")+'</span><span class="nm">'+esc(hb[0])+'</span><span class="pgn mono">p.'+hb[1]+'</span><span class="dot"></span></div>';
+    });
+    h+='</div><div class="fine">点行点亮圆点 · 对照实体书逐条打卡 · 再点取消</div></div>';
+  }else if(cur<=11){
+    var f=FEATURE[cur-4];
+    h='<div class="inner"><div class="ph"><h2>香草 · '+esc(f.zh)+'</h2><span class="pg mono">'+String(cur-1).padStart(2,"0")+'</span></div>'+
+      '<div class="herb-name">'+esc(f.zh)+'</div><div class="herb-latin">'+esc(f.en)+(f.latin?" · "+esc(f.latin):"")+' · 原书 p.'+f.pg+'</div>'+
+      '<p class="herb-desc">'+esc(f.d)+'</p><div class="tags">'+f.t.map(function(t){return "<span>"+esc(t)+"</span>"}).join("")+'</div>'+
+      '<div class="tip"><b>种植手记</b> · '+esc(f.tip)+'</div>'+
+      '<div class="herb-foot"><span class="read-mark '+(isRead(cur)?"on":"")+'" id="mark">'+(isRead(cur)?"● 已翻过":"○ 尚未翻过")+'</span><span class="pg mono">'+(cur-3)+' / '+FEATURE.length+'</span></div>'+
+      '<div class="fine">香草页仅供生活参考 · 不构成医疗建议</div></div>';
+  }else if(cur===12){
+    h='<div class="inner"><div class="ph"><h2>书中配方 · 花草茶</h2><span class="pg mono">12</span></div>'+
+      '<blockquote style="border-color:var(--gold)">引自原书第 175 页 · 豆瓣「原文摘录」· 目录「花草茶」章 p.175</blockquote>'+
+      '<div class="herb-name" style="font-size:18px">柠檬香蜂草 &amp; 玫瑰茶</div>'+
+      '<p class="herb-desc">这种草本茶由能令人放松的柠檬香蜂草与能愉悦心情的玫瑰花制作而成，融合后能释放出属于夏季的清新气息，趁热饮用或冷却后饮用均可。用新鲜的柠檬香蜂草叶片和大马士革玫瑰花瓣制作口感最好。</p>'+
+      '<div class="tip"><b>要点</b> · 香蜂草两三枝嫩叶，玫瑰花瓣五六片，热水冲浸约五分钟。热饮偏苦，冷萃更清甜。</div>'+
+      '<div class="fine">配方引自豆瓣「原文摘录」· 仅供参考</div></div>';
+  }else{
+    var mc2=markedCount();
+    h='<div class="inner"><div class="ph"><h2>翻完了</h2><span class="pg mono">13</span></div>'+
+      '<p class="herb-desc" style="margin-top:8px">打卡册 '+mc2+' / 100 种点亮，精选导读 '+(function(){var n=0;for(var k in READ){if(READ[k])n++}return n})()+' / '+FEATURE.length+' 篇翻过。下次从书里挑一株没见过的香草，翻到它那一页。</p>'+
+      '<blockquote>每一株香草，都是可以端上桌的风景。</blockquote>'+
+      '<div class="fine">《'+META.title+'》 · '+META.press+' · 线上翻页手账<br>目录数据来自实体书 · 生活内容不构成医疗建议</div></div>';
+  }
+  pg.innerHTML=h;
+  $("prevBtn").disabled=cur===0;
+  $("nextBtn").textContent=cur===N-1?"回封面 ↻":"下一页 ›";
+  $("pageno").textContent=cur===0?"— 封面 —":(cur+1)+" / "+N;
+  var go=$("coverGo");
+  if(go)go.addEventListener("click",function(){cur=1;render()});
+  pg.querySelectorAll(".toc-list li").forEach(function(li){
+    if(li.getAttribute("data-p"))li.addEventListener("click",function(){cur=parseInt(li.getAttribute("data-p"),10);render();window.scrollTo(0,0)});
+  });
+  pg.querySelectorAll(".roll-item").forEach(function(row){
+    row.addEventListener("click",function(){toggleMark(parseInt(row.getAttribute("data-i"),10));render()});
+  });
+  var bar=pg.querySelector(".bar");
+  if(cur>=4&&cur<=11&&!isRead(cur)){markRead(cur)}
+}
+$("prevBtn").addEventListener("click",function(){if(cur>0){cur--;render();window.scrollTo(0,0)}});
+$("nextBtn").addEventListener("click",function(){cur=cur===N-1?0:cur+1;render();window.scrollTo(0,0)});
+var now=new Date();
+$("dateStr").textContent=(now.getMonth()+1)+"."+now.getDate();
+render();
+
+})();
+</script>
+</body>
+</html>
